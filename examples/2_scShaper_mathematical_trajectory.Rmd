@@ -1,0 +1,80 @@
+---
+title: "scShaper example - spiral trajectory"
+output: html_notebook
+---
+
+This example demonstrates scShaper using a simple simulated 3D spiral trajectory.
+
+```{r}
+suppressPackageStartupMessages(library(SingleCellExperiment))
+suppressPackageStartupMessages(library(scatterplot3d))
+library(scShaper)
+```
+
+# Generate simulated trajectory (3D spiral)
+```{r}
+set.seed(1234)
+
+t <- seq(1,6*pi,0.01) ; x = t*cos(t); y = t*sin(t) ; z <- t ;  X <- cbind(x,y,z) ; X[,1:3] <- X + matrix(rnorm(nrow(X)*3,sd = 0.05),ncol = 3)
+Y_true <- t
+scatterplot3d(X)
+```
+
+# Run scShaper without dimensionality reduction
+```{r}
+suppressMessages(sce <- SingleCellExperiment(assays = list(counts = t(X), logcounts = t(X))))
+# Run the wrapper that includes all five steps of scShaper. 
+# Separate functions are available too for each step. Please see the manual.
+# Dimensionality reduction is disabled in the example.
+# It is recommended to try different upper limits for the number of clusters (k), e.g. 150, 200.
+# Consider increasing span if more smoothing is desired.
+sce <- RunscShaper(sce,dim.red.method = "none",k.range = 2:100,span = 0.1)
+
+```
+
+
+
+# Evaluate performance
+
+```{r}
+# Define function for RMSE to measure performance
+rmse <- function(x,y)
+{
+  
+  if (var(sce@metadata$scshaper$continuous.pseudotime)==0)
+  {
+    return(Inf)
+  }
+  
+  x <- (x-min(x))/(max(x)-min(x))
+  y <- (y-min(y))/(max(y)-min(y))
+  
+  if (cor(x,y)<0)
+  {
+    x <- 1-x
+  }
+  
+  sqrt(mean((x-y)^2))
+}
+```
+
+
+```{r}
+# Plot unsmoothed pseudotime
+plot(Y_true,sce@metadata$scshaper$average.discrete.pseudotime,ylab="Unmoothed pseudotime",xlab="True pseudotime")
+# Plot smoothed pseudotime
+plot(Y_true,sce@metadata$scshaper$continuous.pseudotime,ylab="Smoothed pseudotime",xlab="True pseudotime")
+# Pearson correlation for unsmoothed pseudotime
+print(cor(Y_true,sce@metadata$scshaper$average.discrete.pseudotime,method = "pearson"))
+# Pearson correlation for smoothed pseudotime
+print(cor(Y_true,sce@metadata$scshaper$continuous.pseudotime,method = "pearson"))
+# RMSE for unsmoothed pseudotime
+print(rmse(Y_true,sce@metadata$scshaper$average.discrete.pseudotime))
+# RMSE for smoothed pseudotime
+print(rmse(Y_true,sce@metadata$scshaper$continuous.pseudotime))
+```
+```{r}
+sessionInfo()
+```
+
+

@@ -1,0 +1,143 @@
+---
+title: "scShaper example - simulated scRNA-seq dataset"
+output: html_notebook
+---
+
+This example demonstrates scShaper using a PROSSTT-simulated [1] scRNA-seq dataset with linear topology (prosstt_1) downloaded
+from the Zenodo database of dynverse [2]. The code integrates scShaper to dyno [3], enabling
+the user to perform complete trajectory inference analysis, with the exception of some pre-processing steps (quality control, normalization and feature selection) left out. To perform QC, normalization and feature selection, the user can for example use Seurat [4]. 
+
+## Define functions for integrating scShaper with dyno workflow
+
+```{r}
+suppressPackageStartupMessages(library(dynwrap))
+suppressPackageStartupMessages(library(dyneval))
+suppressPackageStartupMessages(library(tidyverse))
+```
+
+## Define functions needed for creating a new dynmethod
+```{r}
+definition <- definition(
+    method = def_method(
+        id = "scShaper"
+    ),
+    parameters = def_parameters(
+        dynparam::integer_parameter(
+            id = "k.range",
+            default = 2:100,
+            distribution = dynparam::uniform_distribution(2, 1000),
+            description = "The range of k values used in estimating discrete pseudotimes"
+        ),
+        dynparam::numeric_parameter(
+            id = "span",
+            default = 0.1,
+            distribution = dynparam::uniform_distribution(0, 1),
+            description = "The parameter that determines the degree of smoothing in LOESS"
+        ),
+        dynparam::integer_parameter(
+            id = "num.pcs",
+            default = 50,
+            distribution = dynparam::uniform_distribution(4, 100),
+            description = "Before t-SNE how many principal components to use."
+        ),
+        dynparam::numeric_parameter(
+            id = "perplexity",
+            default = 30,
+            distribution = dynparam::uniform_distribution(2, 100),
+            description = "Perplexity of t-SNE"
+        )
+    ),
+    wrapper = def_wrapper(
+        input_required = "expression",
+        input_optional = "start_id"
+    )
+)
+
+
+run_fun <- function(expression, priors, parameters, seed, verbose) {
+    
+    suppressMessages(sce <- SingleCellExperiment(assays = list(counts = t(expression),logcounts = t(expression))))
+    sce <- RunscShaper(sce,k.range = parameters$k.range,
+                       span=parameters$span,
+                       num.pcs = parameters$num.pcs,
+                       tsne.perplexity = parameters$perplexity)
+    pseudotime <- sce@metadata$scshaper$continuous.pseudotime
+    
+    names(pseudotime) <- rownames(expression)
+    
+    # flip pseudotimes using start_id
+    if (!is.null(priors$start_id)) {
+        if(mean(pseudotime[start_id]) > 0.5) {
+            pseudotime <- 1-pseudotime
+        }
+    }
+    
+    dynwrap::wrap_data(cell_ids = rownames(expression)) %>%
+        dynwrap::add_linear_trajectory(pseudotime = pseudotime)
+}
+
+ti_scShaper <- create_ti_method_r(definition, run_fun, package_loaded = c("SingleCellExperiment","dplyr","scShaper"))
+
+
+```
+
+## Create dyno compatible dynwrap dataset
+```{r}
+# Load scShaper to use the prosstt1 dataset, which comes with the package
+suppressPackageStartupMessages(library(scShaper))
+data("prosstt1")
+
+dataset <- wrap_expression(
+  counts = prosstt1$rna.raw,
+  expression = prosstt1$rna.normalized
+)
+```
+
+
+## Running scShaper
+```{r}
+set.seed(123456)
+model <- infer_trajectory(dataset, ti_scShaper(k.range = 2:100,
+                                               num.pcs = 50,
+                                               span = 0.1),verbose = TRUE)
+```
+
+## Visualizing the trajectory
+```{r}
+suppressPackageStartupMessages(library(dyno))
+# Generate MDS dimensionality reduction for visualization (MDS is default of dyno)
+model <- model %>% add_dimred(dyndimred::dimred_mds, expression_source = dataset$expression)
+# Visualize the trajectory
+plot_dimred(model)
+```
+
+##  Predicting and visualising genes of interest
+```{r}
+# The importance for the whole trajectory
+overall_feature_importance <- calculate_overall_feature_importance(model, expression_source=dataset$expression)
+
+# Take top 100 genes
+prosstt1_features <- overall_feature_importance %>% 
+  top_n(100, importance) %>% 
+  pull(feature_id)
+
+```
+
+```{r}
+plot_heatmap(
+  model, 
+  expression_source = dataset$expression, 
+  features_oi = prosstt1_features
+)
+```
+
+```{r}
+sessionInfo()
+```
+
+
+# References
+1. PROSSTT simulator. [https://doi.org/10.1093/bioinformatics/btz078](https://doi.org/10.1093/bioinformatics/btz078)
+2. Single-cell RNA-seq trajectory database. [https://zenodo.org/record/1443566#.XiL7FyPRaUl](https://zenodo.org/record/1443566#.XiL7FyPRaUl)
+3. dyno pipeline. [https://dynverse.org/dyno/](https://dynverse.org/dyno/)
+4. Seurat. [https://satijalab.org/seurat/index.html](https://satijalab.org/seurat/index.html)
