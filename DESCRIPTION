@@ -1,0 +1,30 @@
+Package: scShaper
+Type: Package
+Title: A tool for linear trajectory inference from single-cell RNA-seq data through discrete pseudotime estimation using Shortest HAmiltonian path PERmuted clustering
+Version: 0.1.0
+Author: Johannes Smolander
+Maintainer: Johannes Smolander <johannes.smolander@gmail.com>
+Description: scShaper is a tool linear trajectory inference. The tool has been primarily designed for scRNA-seq data.
+Authors@R: c(person("Johannes", "Smolander",
+             email = "johannes.smolander@gmail.com",
+             role=c("cre", "aut")),
+             person("Sini", "Junttila",
+             role=c("aut")),
+             person("Mikko S", "Venäläinen",
+             role=c("aut")),
+             person("Laura L", "Elo",
+             role=c("aut")))
+License: GPL-3
+Imports: Matrix,Rtsne, plyr, dplyr, 
+          SingleCellExperiment, SummarizedExperiment, S4Vectors, methods, stats,
+          utils
+Depends: R(>= 4.0.0)
+LinkingTo: Rcpp
+LazyData: TRUE
+RoxygenNote: 7.1.0
+Encoding: UTF-8
+Suggests: knitr, rmarkdown
+VignetteBuilder: knitr
+NeedsCompilation: no
+URL: https://github.com/elolab/scshaper
+BugReports: https://github.com/elolab/scshaper
