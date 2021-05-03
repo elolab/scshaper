@@ -7,7 +7,6 @@ This example demonstrates scShaper using a PROSSTT-simulated [1] scRNA-seq datas
 from the Zenodo database of dynverse [2]. The code integrates scShaper to dyno [3], enabling
 the user to perform complete trajectory inference analysis, with the exception of some pre-processing steps (quality control, normalization and feature selection) left out. To perform QC, normalization and feature selection, the user can for example use Seurat [4]. 
 
-## Define functions for integrating scShaper with dyno workflow
 
 ```{r}
 suppressPackageStartupMessages(library(dynwrap))
