@@ -22,4 +22,4 @@ devtools::install_github("elolab/scshaper")
 
 ## Citation
 
-*Johannes Smolander. Sini Junttila. Mikko S. Venäläinen. Laura L. Elo. scShaper: ensemble method for fast and accurate linear trajectory inference from single-cell RNA-seq data. GitHub. [https://github.com/elolab/scshaper.](https://github.com/elolab/scshaper.)*
+*Johannes Smolander. Sini Junttila. Mikko S. Venäläinen. Laura L. Elo. scShaper: ensemble method for fast and accurate linear trajectory inference from single-cell RNA-seq data. bioRxiv. [https://doi.org/10.1101/2021.05.03.442435](https://doi.org/10.1101/2021.05.03.442435)*
