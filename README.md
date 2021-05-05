@@ -18,7 +18,7 @@ devtools::install_github("elolab/scshaper")
 
 [The first example](https://htmlpreview.github.io/?https://github.com/elolab/scshaper/blob/main/examples/1_scShaper_with_dyno_integration.nb.html) demonstrates scShaper using a simulated scRNA-seq dataset and integration with the dyno pipeline. This workflow is recommended if the user wants to use scShaper with **scRNA-seq data**. 
 
-[The second example](https://htmlpreview.github.io/?https://github.com/elolab/scshaper/blob/main/examples/2_scShaper_mathematical_trajectory.nb.html) demonstrates scShaper with a simulated trigonometric dataset (2D spiral). This workflow is recommended if the user wants to use scShaper with **other data types that require no dimensionality reduction**. 
+[The second example](https://htmlpreview.github.io/?https://github.com/elolab/scshaper/blob/main/examples/2_scShaper_mathematical_trajectory.nb.html) demonstrates scShaper with a simulated trigonometric dataset (3D spiral). This workflow is recommended if the user wants to use scShaper with **other data types that require no dimensionality reduction**. 
 
 ## Citation
 
